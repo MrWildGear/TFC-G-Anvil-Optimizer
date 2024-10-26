@@ -1,0 +1,49 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --button-bg: #4CAF50;
+    --button-text: #ffffff;
+    --input-bg: #f0f0f0;
+    --input-text: #000000;
+  }
+  
+  [data-theme='dark'] {
+    --bg-color: #413f3f;
+    --text-color: #ffffff;
+    --button-bg: #45a049;
+    --button-text: #ffffff;
+    --input-bg: #2a2a2a;
+    --input-text: #ffffff;
+  }
+  
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+  }
+  
+  .App {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+  }
+  
+  button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: var(--button-bg-hover, var(--button-bg));
+  }
+  
+  input, select {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--text-color);
+    padding: 5px 10px;
+  }

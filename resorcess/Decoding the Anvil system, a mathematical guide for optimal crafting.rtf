@@ -1,0 +1,90 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 Decoding the Anvil system, a mathematical guide for optimal crafting\par
+TFC TNG\par
+A brief introduction to the anvil system\par
+For beginners that aren't familiar with anvils, it is a tool in TFC that allows you to craft different tools. In order to craft something, you need to do it through a series of actions, which will move a pointer left and right. The goal is to line up the pointer exactly on target, whilst simultaneously completing a sequence of mandatory actions. Because each action is deterministic, then there exist a mathematically optimal way to accomplish this, and this post aims to bring a practical method of optimizing your anvil crafting.\par
+\par
+Overview of methodology\par
+This method involves three major parts:\par
+\par
+Estimating target position\par
+\par
+Calculate end sequence delta\par
+\par
+Calculate optimal equation to traverse delta.\par
+\par
+For the purpose of this post, lets consider the anvil axis to be an axis on natural numbers beginning with 1 and ending on 150. Therefore, moving right is considered "positive" and moving left is considered "negative".\par
+\par
+Here are the precise values for each possible action:\par
+\par
+Punch: +2\par
+\par
+Bend: +7\par
+\par
+Upset: +13\par
+\par
+Shrink: +16\par
+\par
+Light Hit: -3\par
+\par
+Medium Hit: -6\par
+\par
+Heavy Hit: -9\par
+\par
+Draw: -15\par
+\par
+Estimating the target position\par
+We use a gradient descent inspired method in order to precisely measure the position of the target pointer. The idea is to move in large "steps" until we get close to the target, then use smaller steps to precisely line up to the target.\par
+\par
+Spam as many "shrinks" as you can until your pointer moves past the target (we call this initial traversal, using big strides)\par
+\par
+Spam as many "light hits" as you can until your pointer moves past the target (to the left now) (we call this correction)\par
+\par
+If your pointer is 1 pixel away from the target, use 1 light hit and 2 punches\par
+\par
+If your pointer is 2 pixel away, use 1 punch.\par
+\par
+This goes without saying that if at any step your pointer lands directly on target then terminate, as that is our goal.\par
+\par
+Now, simply add up all the action values (i.e 16 * numberOfShrinks + -3 * numberOfLightHits + 2 * numberOfPunches) and you have the precise value for your target position.\par
+\par
+Mathematical breakdown and addendum (skip if you are just interested in the method)\par
+\par
+Much like gradient descent, estimation does not necessarily produce the globally optimal result. In other words, it does not guarantee the least number of steps required to reach the target position. That being said, there are additional optimizations that could be made:\par
+\par
+If the target is deemed to be close (<35), it is better to use smaller strides (i.e "upset" instead of "shrink"). The reason is because with a larger stride, we are sacrificing "correctional cost" (the distance we would overshoot or undershoot the target) for faster traversal across the axis. Why 35? Because 3 * upset = 39 and 2 * shrink = 32, which means anything below 35 would require a similar number of upsets vs shrinks to reach. The same logic can be applied for even smaller targets, but those seem to not exist in practice.\par
+\par
+During the initial traversal, if the pointer have not passed the target yet comes in close (within 6) of the target, then it is better to instead stop and undershoot (using punches for correction) instead of overshooting. Why 6? Because 3 * punches = 6 and 3 * light hits = -9, abs() that yields 15. This means that (assuming you are using shrink as your stride), if you come within -6 delta of the target, then you'll need just as many light hits as punches (and less if you are closer than 6). The benefit of using punches is similar to what we discussed above, punches offers more granularity (binary case instead of ternary case).\par
+\par
+The above 2 optimizations do rely on experience of the player to accurately visually gauge distances on the axis. This means that for inexperienced players, it is better not to risk adding in optimizations as they offer very small returns and the risk is high.\par
+\par
+Calculating end sequence delta\par
+This is arguably the easiest step out of all 3. You simply need to figure out the last 3 actions (or last 2) that you must take, or the end sequence. This can be determined via the "rules" box (orange boxes on top of the anvil UI). Simply add all of the action's values together (ordering doesn't matter as addition/subtraction is commutative), and subtract that from the target position, and you have your pre-end-sequence-position. This is the position that you must reach before you execute your end sequence, as whatever delta your end sequence is must be perfectly added to your pre position to complete the crafting. Fairly simple, no? As an example, if your end sequence is 2 punches (+4), then your pre position is (target pos - 4). When you reach your end sequence, just do 2 punches, you reach your target and complete the rules requirement.\par
+\par
+Mathematical breakdown and addendum\par
+\par
+The pre end sequence position is arguably the most important position we want to figure out. The crux of this entire methodology is actually to minimize the steps it takes to reach this pre position. If we were able to find the minimal steps to reach this, then by extension you have also found the minimal steps necessary to complete the crafting process.\par
+\par
+As such, the biggest cost is actually step 1, the positional estimation step. If you were able to, through whatever means (say if you were using cheats), calculate the target position without estimation, then you have effectively saved a huge number of steps required. Therefore, the only way to gain true global optimality is to essentially use 3rd party tools (and no, no human eyes can accurately calculate the position).\par
+\par
+Calculate delta traversal equation\par
+This is probably the most fun step out of all three. Now that you have your target position (which is your current position), and the pre end sequence position (the position you want to get to before you execute your end sequence), you now have a delta that you need to optimally traverse. Your task is simple, find a combination of actions that, when added together, yields the delta in the least number of actions (for brevity sake I won't go through algorithms to do this, exhaustive search is often times practical for this). For example, if your delta is -5, then a possible optimal solution could be heavy hit + 2 punches (-9 + 2 * 2). Often times there will be multiple optimal solutions. Once you have this, traverse to the pre end position and simply execute your end sequence and voila!\par
+\par
+Mathematical breakdown\par
+\par
+This is the only step where optimality can be ensured, no matter what. Not optimality of the entire process (as discussed), but optimality within this particular process. Even with 3rd party tools, you still need to perform this step regardless.\par
+\par
+Luckily, as there are only 8 actions, even exhaustive listing is a practical solution to this problem, because most of the time the larger actions can immediately be pruned from the pool for smaller deltas.\par
+\par
+Results and conclusion\par
+Using this method, even without 3rd party tools, I can pretty much guarantee "perfectly forged" and sometimes "expertly forged". Of course, there is no way (without 3rd party tools) to guarantee expertly forged on every craft as we've discussed. So, in the absence of cheats and in the face of randomness and luck, I would say this method yields optimal results.\par
+\par
+Addendum\par
+If you do have a method of obtaining target position using 3rd party tools (no shame), then slightly modifying the method will actually yield you the global optimal solution and will guarantee expertly forged.\par
+\par
+Simply skip step 1, perform step 2 to calculate your pre end sequence position. Then, for step 3, instead of calculating the optimal equation for the delta, just calculate the optimal equation to reach your pre end sequence position from the start. For example, if your pre end sequence pos is 50, then just figure out how to get to 50 with the least number of steps.\par
+\par
+Doing this is of course harder than performing the calculation on a smaller delta, but will in fact yield the true optimal equation purely because calculating the equation itself is a optimal process (as discussed), and obviously the end sequence cannot be avoided. You have essentially avoided the only "suboptimal" process, which is the estimation\par
+}
+ 
